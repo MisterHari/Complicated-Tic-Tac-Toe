@@ -1,0 +1,1387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cube Tac Toe</title>
+
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:light-dark(#f5f6f8,#0b0d10);
+  --panel:light-dark(#fff,#15181d);
+  --panel2:light-dark(#f0f2f5,#1d2128);
+  --text:light-dark(#16181c,#f2f4f7);
+  --muted:light-dark(#666d78,#9aa3af);
+  --line:light-dark(#d9dde4,#303641);
+  --accent:light-dark(#5b52e8,#8c84ff);
+  --x:light-dark(#d54b58,#ff6978);
+  --o:light-dark(#3187df,#61a8ff)
+}
+
+*{
+  box-sizing:border-box
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,
+  BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+
+.app{
+  min-height:100vh;
+  background:var(--bg)
+}
+
+.wrap{
+  max-width:1050px;
+  margin:auto;
+  padding:28px 18px 36px
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:flex-start;
+  margin-bottom:18px
+}
+
+.eyebrow{
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--muted);
+  font-weight:800
+}
+
+.title{
+  font-size:34px;
+  line-height:1.05;
+  font-weight:900;
+  margin:6px 0
+}
+
+.subtitle{
+  color:var(--muted);
+  font-size:14px
+}
+
+.btn{
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--text);
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:800;
+  cursor:pointer
+}
+
+.btn:hover{
+  border-color:var(--accent)
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(280px,.75fr);
+  gap:18px
+}
+
+.gamepanel,
+.side{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px
+}
+
+.gamepanel{
+  padding:18px
+}
+
+.stage{
+  height:520px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  perspective:1000px;
+  overflow:hidden;
+  border-radius:14px;
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(127,127,127,.13),
+      transparent 48%
+    )
+}
+
+.cube{
+  width:280px;
+  height:280px;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .08s linear
+}
+
+.face{
+  position:absolute;
+  width:280px;
+  height:280px;
+  padding:9px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  border:2px solid color-mix(
+    in srgb,
+    var(--line) 75%,
+    transparent
+  );
+  background:color-mix(
+    in srgb,
+    var(--panel) 88%,
+    transparent
+  );
+  backdrop-filter:blur(4px);
+  transform-style:preserve-3d
+}
+
+.front{
+  transform:translateZ(140px)
+}
+
+.back{
+  transform:rotateY(180deg) translateZ(140px)
+}
+
+.right{
+  transform:rotateY(90deg) translateZ(140px)
+}
+
+.left{
+  transform:rotateY(-90deg) translateZ(140px)
+}
+
+.topf{
+  transform:rotateX(90deg) translateZ(140px)
+}
+
+.bottomf{
+  transform:rotateX(-90deg) translateZ(140px)
+}
+
+.cell{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  color:var(--text);
+  border-radius:7px;
+  font-size:30px;
+  font-weight:900;
+  cursor:pointer;
+  min-width:0
+}
+
+.cell:hover:not(:disabled){
+  border-color:var(--accent);
+  background:color-mix(
+    in srgb,
+    var(--accent) 13%,
+    var(--panel2)
+  )
+}
+
+.cell:disabled{
+  cursor:default;
+  opacity:.78
+}
+
+.corner{
+  box-shadow:
+    inset 0 0 0 2px
+    color-mix(
+      in srgb,
+      var(--accent) 70%,
+      transparent
+    )
+}
+
+.x{
+  color:var(--x)
+}
+
+.o{
+  color:var(--o)
+}
+
+.under{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:14px;
+  flex-wrap:wrap
+}
+
+.turn{
+  font-size:17px;
+  font-weight:900
+}
+
+.hint{
+  color:var(--muted);
+  font-size:13px
+}
+
+.arrows{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap
+}
+
+.side{
+  padding:18px
+}
+
+.statusbox{
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--panel2);
+  margin-bottom:14px
+}
+
+.scoregrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-bottom:16px
+}
+
+.score{
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:12px
+}
+
+.score strong{
+  font-size:22px
+}
+
+.score small{
+  display:block;
+  color:var(--muted);
+  margin-bottom:4px
+}
+
+.faces{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:7px;
+  margin-top:9px
+}
+
+.facebtn{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  color:var(--text);
+  border-radius:9px;
+  padding:9px 7px;
+  cursor:pointer;
+  font-weight:750;
+  font-size:12px
+}
+
+.facebtn.active{
+  border:2px solid var(--accent);
+  padding:8px 6px
+}
+
+.facebtn.locked{
+  opacity:.45
+}
+
+.rules{
+  margin-top:16px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.55
+}
+
+.rules b{
+  color:var(--text)
+}
+
+.win{
+  font-weight:900;
+  color:var(--accent)
+}
+
+@media(max-width:800px){
+
+  .layout{
+    grid-template-columns:1fr
+  }
+
+  .stage{
+    height:440px
+  }
+
+  .cube,
+  .face{
+    width:235px;
+    height:235px
+  }
+
+  .front{
+    transform:translateZ(117.5px)
+  }
+
+  .back{
+    transform:rotateY(180deg) translateZ(117.5px)
+  }
+
+  .right{
+    transform:rotateY(90deg) translateZ(117.5px)
+  }
+
+  .left{
+    transform:rotateY(-90deg) translateZ(117.5px)
+  }
+
+  .topf{
+    transform:rotateX(90deg) translateZ(117.5px)
+  }
+
+  .bottomf{
+    transform:rotateX(-90deg) translateZ(117.5px)
+  }
+}
+
+@media(max-width:520px){
+
+  .wrap{
+    padding:18px 12px
+  }
+
+  .title{
+    font-size:28px
+  }
+
+  .top{
+    align-items:center
+  }
+
+  .stage{
+    height:350px
+  }
+
+  .cube,
+  .face{
+    width:190px;
+    height:190px
+  }
+
+  .front{
+    transform:translateZ(95px)
+  }
+
+  .back{
+    transform:rotateY(180deg) translateZ(95px)
+  }
+
+  .right{
+    transform:rotateY(90deg) translateZ(95px)
+  }
+
+  .left{
+    transform:rotateY(-90deg) translateZ(95px)
+  }
+
+  .topf{
+    transform:rotateX(90deg) translateZ(95px)
+  }
+
+  .bottomf{
+    transform:rotateX(-90deg) translateZ(95px)
+  }
+
+  .cell{
+    font-size:23px
+  }
+
+  .gamepanel,
+  .side{
+    padding:13px
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<main class="wrap">
+
+<header class="top">
+
+<div>
+  <div class="eyebrow">
+    Two-player strategy game
+  </div>
+
+  <div class="title">
+    CUBE TAC TOE
+  </div>
+
+  <div class="subtitle">
+    Three in a row — or own two opposite corners.
+  </div>
+</div>
+
+<button class="btn" id="newGame">
+  New game
+</button>
+
+</header>
+
+
+<div class="layout">
+
+<section class="gamepanel">
+
+<div class="stage" id="stage">
+
+<div class="cube" id="cube">
+
+<div
+  class="face front"
+  data-face="Front">
+</div>
+
+<div
+  class="face back"
+  data-face="Back">
+</div>
+
+<div
+  class="face right"
+  data-face="Right">
+</div>
+
+<div
+  class="face left"
+  data-face="Left">
+</div>
+
+<div
+  class="face topf"
+  data-face="Top">
+</div>
+
+<div
+  class="face bottomf"
+  data-face="Bottom">
+</div>
+
+</div>
+
+</div>
+
+
+<div class="under">
+
+<div>
+
+<div class="turn" id="turn"></div>
+
+<div class="hint" id="hint"></div>
+
+</div>
+
+<div class="arrows">
+
+<button class="btn" id="rotL">
+  ↶
+</button>
+
+<button class="btn" id="rotU">
+  ↑
+</button>
+
+<button class="btn" id="rotD">
+  ↓
+</button>
+
+<button class="btn" id="rotR">
+  ↷
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<aside class="side">
+
+<div
+  class="statusbox"
+  id="message"
+  aria-live="polite">
+  Pick an empty square on any face.
+</div>
+
+
+<div class="scoregrid">
+
+<div class="score">
+
+<small>
+  PLAYER 1
+</small>
+
+<strong class="x">
+  ❌ X
+</strong>
+
+<div id="xCorners">
+  Corners 0 / 2
+</div>
+
+</div>
+
+
+<div class="score">
+
+<small>
+  PLAYER 2
+</small>
+
+<strong class="o">
+  ⭕ O
+</strong>
+
+<div id="oCorners">
+  Corners 0 / 2
+</div>
+
+</div>
+
+</div>
+
+
+<div>
+
+<b>
+  Choose face
+</b>
+
+<div
+  class="faces"
+  id="faceButtons">
+</div>
+
+</div>
+
+
+<div class="rules">
+
+<b>
+  Rules
+</b>
+
+<br>
+
+• 3 in a row on any face wins.
+
+<br>
+
+• Control
+<b>
+  2 opposite physical corners
+</b>
+to win.
+
+<br>
+
+• After playing on a face,
+that face is locked for your next
+<b>
+  5 moves
+</b>.
+
+<br>
+
+• After playing a corner,
+your next move must be
+<b>
+  non-corner
+</b>.
+
+<br>
+
+• Cooldowns are independent for X and O.
+
+<br>
+
+• Drag the cube to rotate it.
+
+</div>
+
+</aside>
+
+</div>
+
+</main>
+
+</div>
+
+
+<script>
+
+(() => {
+
+const faces = [
+  'Front',
+  'Back',
+  'Right',
+  'Left',
+  'Top',
+  'Bottom'
+];
+
+
+/*
+  Physical cube corners.
+
+  A ↔ C
+  B ↔ D
+  E ↔ F
+*/
+
+const corners = {
+
+  Front:{
+    '0':'A',
+    '2':'B',
+    '6':'D',
+    '8':'C'
+  },
+
+  Back:{
+    '0':'C',
+    '2':'D',
+    '6':'B',
+    '8':'A'
+  },
+
+  Right:{
+    '0':'B',
+    '2':'C',
+    '6':'F',
+    '8':'E'
+  },
+
+  Left:{
+    '0':'D',
+    '2':'A',
+    '6':'E',
+    '8':'F'
+  },
+
+  Top:{
+    '0':'A',
+    '2':'B',
+    '6':'F',
+    '8':'E'
+  },
+
+  Bottom:{
+    '0':'D',
+    '2':'C',
+    '6':'E',
+    '8':'F'
+  }
+
+};
+
+
+const opposite = {
+  A:'C',
+  C:'A',
+
+  B:'D',
+  D:'B',
+
+  E:'F',
+  F:'E'
+};
+
+
+const lines = [
+
+  [0,1,2],
+  [3,4,5],
+  [6,7,8],
+
+  [0,3,6],
+  [1,4,7],
+  [2,5,8],
+
+  [0,4,8],
+  [2,4,6]
+
+];
+
+
+let board;
+let turn;
+let cool;
+let cornerNextBlocked;
+let cornerOwner;
+let selected;
+let over;
+let moves;
+
+let rx = -20;
+let ry = -32;
+
+let drag = null;
+
+
+const $ = id =>
+  document.getElementById(id);
+
+
+/*
+  Start / reset game
+*/
+
+function reset(){
+
+  board = {};
+
+  faces.forEach(face => {
+
+    board[face] =
+      Array(9).fill('');
+
+  });
+
+
+  turn = 'X';
+
+
+  cool = {
+    X:{},
+    O:{}
+  };
+
+
+  faces.forEach(face => {
+
+    cool.X[face] = 0;
+    cool.O[face] = 0;
+
+  });
+
+
+  cornerNextBlocked = {
+    X:false,
+    O:false
+  };
+
+
+  cornerOwner = {};
+
+
+  selected = 'Front';
+
+  over = false;
+
+  moves = 0;
+
+  rx = -20;
+  ry = -32;
+
+  render();
+
+}
+
+
+/*
+  Is this square one of the
+  eight physical cube corners?
+*/
+
+function isCorner(face,index){
+
+  return corners[face][index] != null;
+
+}
+
+
+/*
+  Return physical corner ID.
+*/
+
+function cid(face,index){
+
+  return corners[face][index];
+
+}
+
+
+/*
+  Render entire game
+*/
+
+function render(){
+
+  const cube = $('cube');
+
+  cube.style.transform =
+    `rotateX(${rx}deg) rotateY(${ry}deg)`;
+
+
+  /*
+    Render the six faces
+  */
+
+  faces.forEach(face => {
+
+    const element =
+      document.querySelector(
+        `.face[data-face="${face}"]`
+      );
+
+    element.innerHTML = '';
+
+
+    for(let i = 0; i < 9; i++){
+
+      const button =
+        document.createElement('button');
+
+      button.className =
+        'cell' +
+        (isCorner(face,i)
+          ? ' corner'
+          : '');
+
+      button.type = 'button';
+
+
+      const value =
+        board[face][i];
+
+
+      if(value){
+
+        button.innerHTML =
+          `<span class="${
+            value === 'X' ? 'x' : 'o'
+          }">${
+            value === 'X' ? '❌' : '⭕'
+          }</span>`;
+
+      }else{
+
+        button.innerHTML = '';
+
+      }
+
+
+      /*
+        A square cannot be selected if:
+
+        - game ended
+        - already occupied
+        - face is on cooldown
+        - player's previous move was a corner
+          and this square is also a corner
+      */
+
+      button.disabled =
+        over ||
+        !!value ||
+        cool[turn][face] > 0 ||
+        (
+          cornerNextBlocked[turn] &&
+          isCorner(face,i)
+        );
+
+
+      button.title =
+        isCorner(face,i)
+          ? 'Physical corner ' + cid(face,i)
+          : 'Empty square';
+
+
+      button.onclick = () =>
+        play(face,i);
+
+
+      element.appendChild(button);
+
+    }
+
+  });
+
+
+  /*
+    Turn display
+  */
+
+  $('turn').innerHTML =
+    over
+      ? '<span class="win">Game finished</span>'
+      : `${turn === 'X'
+          ? '❌ X'
+          : '⭕ O'
+        } to play`;
+
+
+  /*
+    Hint
+  */
+
+  if(cornerNextBlocked[turn]){
+
+    $('hint').textContent =
+      'Your previous move was a corner — choose a non-corner square.';
+
+  }
+
+  else if(cool[turn][selected] > 0){
+
+    $('hint').textContent =
+      `${selected} is locked for you ` +
+      `(${cool[turn][selected]} move(s) left).`;
+
+  }
+
+  else{
+
+    $('hint').textContent =
+      'Choose a square on any available face.';
+
+  }
+
+
+  /*
+    Count corners
+  */
+
+  const owned = player =>
+    Object.values(cornerOwner)
+      .filter(x => x === player)
+      .length;
+
+
+  $('xCorners').textContent =
+    `Corners ${owned('X')} / 2`;
+
+  $('oCorners').textContent =
+    `Corners ${owned('O')} / 2`;
+
+
+  /*
+    Face selection buttons
+  */
+
+  const faceButtons =
+    $('faceButtons');
+
+  faceButtons.innerHTML = '';
+
+
+  faces.forEach(face => {
+
+    const button =
+      document.createElement('button');
+
+    button.className =
+      'facebtn' +
+      (face === selected
+        ? ' active'
+        : '') +
+      (cool[turn][face] > 0
+        ? ' locked'
+        : '');
+
+
+    button.textContent =
+      face +
+      (
+        cool[turn][face] > 0
+          ? ` 🔒${cool[turn][face]}`
+          : ''
+      );
+
+
+    button.onclick = () => {
+
+      selected = face;
+
+      render();
+
+    };
+
+
+    faceButtons.appendChild(button);
+
+  });
+
+}
+
+
+/*
+  Make a move
+*/
+
+function play(face,index){
+
+  /*
+    Safety checks
+  */
+
+  if(
+    over ||
+    board[face][index] ||
+    cool[turn][face] > 0 ||
+    (
+      cornerNextBlocked[turn] &&
+      isCorner(face,index)
+    )
+  ){
+
+    return;
+
+  }
+
+
+  const player = turn;
+
+  const corner =
+    isCorner(face,index);
+
+
+  /*
+    Place mark
+  */
+
+  board[face][index] = player;
+
+  moves++;
+
+
+  /*
+    If corner, claim physical corner
+  */
+
+  if(corner){
+
+    cornerOwner[
+      cid(face,index)
+    ] = player;
+
+  }
+
+
+  /*
+    Reduce this player's cooldowns.
+
+    Important:
+    The opponent's cooldowns are NOT changed.
+  */
+
+  faces.forEach(otherFace => {
+
+    if(cool[player][otherFace] > 0){
+
+      cool[player][otherFace]--;
+
+    }
+
+  });
+
+
+  /*
+    Lock the face used for
+    the next 5 moves of this player.
+  */
+
+  cool[player][face] = 5;
+
+
+  /*
+    If this was a corner,
+    their next move cannot be a corner.
+  */
+
+  cornerNextBlocked[player] = corner;
+
+
+  /*
+    Check normal 3-in-a-row win
+  */
+
+  if(
+    lines.some(line =>
+      line.every(
+        index =>
+          board[face][index] === player
+      )
+    )
+  ){
+
+    finish(
+      `${player === 'X'
+        ? '❌ X'
+        : '⭕ O'
+      } wins with three in a row on ${face}!`
+    );
+
+    return;
+
+  }
+
+
+  /*
+    Check opposite-corner win
+  */
+
+  const ownedCorners =
+    Object.keys(cornerOwner)
+      .filter(
+        corner =>
+          cornerOwner[corner] === player
+      );
+
+
+  const hasOpposite =
+    ownedCorners.some(
+      corner =>
+        ownedCorners.includes(
+          opposite[corner]
+        )
+    );
+
+
+  if(hasOpposite){
+
+    finish(
+      `${player === 'X'
+        ? '❌ X'
+        : '⭕ O'
+      } wins by controlling two opposite physical corners!`
+    );
+
+    return;
+
+  }
+
+
+  /*
+    Change player
+  */
+
+  turn =
+    player === 'X'
+      ? 'O'
+      : 'X';
+
+
+  selected = face;
+
+
+  render();
+
+
+  /*
+    Message after move
+  */
+
+  $('message').textContent =
+    corner
+      ? `${player === 'X'
+          ? '❌ X'
+          : '⭕ O'
+        } claimed a corner. Their next move must be non-corner.`
+      : 'Move played.';
+
+}
+
+
+/*
+  End game
+*/
+
+function finish(message){
+
+  over = true;
+
+  render();
+
+
+  $('message').innerHTML =
+    `<span class="win">
+      🏆 ${message}
+    </span>`;
+
+}
+
+
+/*
+  New game
+*/
+
+$('newGame').onclick =
+  reset;
+
+
+/*
+  Cube rotation buttons
+*/
+
+$('rotL').onclick = () => {
+
+  ry -= 90;
+
+  render();
+
+};
+
+
+$('rotR').onclick = () => {
+
+  ry += 90;
+
+  render();
+
+};
+
+
+$('rotU').onclick = () => {
+
+  rx -= 90;
+
+  render();
+
+};
+
+
+$('rotD').onclick = () => {
+
+  rx += 90;
+
+  render();
+
+};
+
+
+/*
+  Drag-to-rotate
+*/
+
+const stage =
+  $('stage');
+
+
+stage.addEventListener(
+  'pointerdown',
+  event => {
+
+    /*
+      Don't start dragging when
+      clicking an actual square.
+    */
+
+    if(event.target.closest('button')){
+
+      return;
+
+    }
+
+
+    drag = {
+
+      x:event.clientX,
+      y:event.clientY,
+      rx,
+      ry
+
+    };
+
+
+    stage.setPointerCapture(
+      event.pointerId
+    );
+
+  }
+);
+
+
+stage.addEventListener(
+  'pointermove',
+  event => {
+
+    if(!drag){
+
+      return;
+
+    }
+
+
+    ry =
+      drag.ry +
+      (event.clientX - drag.x) * .55;
+
+
+    rx =
+      drag.rx -
+      (event.clientY - drag.y) * .55;
+
+
+    $('cube').style.transform =
+      `rotateX(${rx}deg) rotateY(${ry}deg)`;
+
+  }
+);
+
+
+stage.addEventListener(
+  'pointerup',
+  () => {
+
+    drag = null;
+
+  }
+);
+
+
+stage.addEventListener(
+  'pointercancel',
+  () => {
+
+    drag = null;
+
+  }
+);
+
+
+/*
+  Start game
+*/
+
+reset();
+
+})();
+</script>
+
+</body>
+</html>
