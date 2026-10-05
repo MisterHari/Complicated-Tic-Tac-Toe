@@ -1,5 +1,5 @@
 # Complicated-Tic-Tac-Toe
-Image play a game of Tic Tac Toe on a cube with many rules
+Imagine a game of Tic Tac Toe on a cube with many rules
 
 this is just a base model 
 
