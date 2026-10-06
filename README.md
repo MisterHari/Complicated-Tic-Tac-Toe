@@ -13,6 +13,9 @@ The objective is simple:
 
 > **Create three in a row OR control two opposite physical corners before your opponent does.**
 
+
+the code is so messed up 
+pls wait
 ---
 
 ## 🎮 How to Play
